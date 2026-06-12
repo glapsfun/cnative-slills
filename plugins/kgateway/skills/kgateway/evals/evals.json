@@ -1,0 +1,133 @@
+{
+  "skill_name": "kgateway",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I just installed kgateway v2.3.1 on my cluster and created a Gateway and HTTPRoute, but the route shows 'Accepted: False'. Here's my HTTPRoute yaml:\n\napiVersion: gateway.networking.k8s.io/v1\nkind: HTTPRoute\nmetadata:\n  name: my-app\n  namespace: app-ns\nspec:\n  parentRefs:\n  - name: http\n    namespace: kgateway-system\n  rules:\n  - backendRefs:\n    - name: my-service\n      port: 8080\n\nWhat could be wrong?",
+      "expected_output": "Diagnose the Accepted: False condition — likely allowedRoutes namespaces config or missing ReferenceGrant. Provide fix with kubectl commands and YAML",
+      "files": [],
+      "assertions": [
+        {
+          "name": "identifies-cross-namespace-as-root-cause",
+          "description": "Response identifies that the HTTPRoute is in a different namespace (app-ns) than the Gateway (kgateway-system) as the likely root cause"
+        },
+        {
+          "name": "mentions-allowedRoutes-or-namespace-config",
+          "description": "Response mentions allowedRoutes on the Gateway listener OR explains namespace-scoped route filtering"
+        },
+        {
+          "name": "provides-kubectl-describe-command",
+          "description": "Response includes a kubectl describe httproute or kubectl describe gateway command to inspect conditions"
+        },
+        {
+          "name": "provides-fix-yaml-or-command",
+          "description": "Response includes either a YAML fix (allowedRoutes: namespaces: from: All) or a ReferenceGrant example to resolve the issue"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "How do I set up JWT authentication on my kgateway HTTPRoute? I'm using Auth0 and want to require a valid JWT for all requests to /api/* but allow /api/public without auth.",
+      "expected_output": "TrafficPolicy YAML with JWT provider pointing to Auth0 JWKS, plus how to exempt /api/public with a second route rule. Include issuer/audience config.",
+      "files": [],
+      "assertions": [
+        {
+          "name": "shows-TrafficPolicy-with-jwt",
+          "description": "Response includes a TrafficPolicy YAML with spec.policy.jwt.providers"
+        },
+        {
+          "name": "includes-issuer-and-audiences",
+          "description": "Response includes issuer and audiences fields in the JWT provider config"
+        },
+        {
+          "name": "shows-auth0-jwks-url",
+          "description": "Response includes the Auth0 JWKS URL pattern (e.g., https://<tenant>.auth0.com/.well-known/jwks.json)"
+        },
+        {
+          "name": "addresses-public-route-exclusion",
+          "description": "Response explains how to exempt /api/public from JWT auth (e.g., separate HTTPRoute rule, ordering, or no-policy route)"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "We're doing a canary deploy and want to send 10% of traffic to our new version v2 while keeping 90% on v1. How do I configure this in kgateway?",
+      "expected_output": "HTTPRoute with weighted backendRefs (weight 90/10), explanation of relative weights, mention of Argo Rollouts integration for automated progression",
+      "files": [],
+      "assertions": [
+        {
+          "name": "shows-weighted-backendRefs",
+          "description": "Response includes an HTTPRoute with backendRefs containing weight fields"
+        },
+        {
+          "name": "correct-weight-ratio",
+          "description": "Response uses weight: 90 and weight: 10 (or equivalent 9/1 ratio) for v1 and v2"
+        },
+        {
+          "name": "explains-weight-semantics",
+          "description": "Response explains that weights are relative (e.g., they don't need to sum to 100)"
+        },
+        {
+          "name": "mentions-argo-rollouts-or-progression",
+          "description": "Response mentions Argo Rollouts integration or progressive delivery as a next step"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I'm upgrading from kgateway v2.2 to v2.3. What do I need to know and watch out for?",
+      "expected_output": "List v2.3.0 breaking changes: classic transformation removed, CORS wildcard syntax change, XListenerSet→ListenerSet migration, Istio ServiceEntry KGW_ENABLE_ISTIO_INTEGRATION flag. Include upgrade Helm commands.",
+      "files": [],
+      "assertions": [
+        {
+          "name": "mentions-classic-transformation-removed",
+          "description": "Response mentions that the classic transformation filter was removed and only Rustformation is supported in v2.3"
+        },
+        {
+          "name": "mentions-cors-wildcard-change",
+          "description": "Response mentions the CORS wildcard origin syntax change (non-spec patterns rejected)"
+        },
+        {
+          "name": "mentions-xlistenerset-migration",
+          "description": "Response mentions the XListenerSet to ListenerSet migration (kind and apiVersion change)"
+        },
+        {
+          "name": "mentions-istio-integration-flag",
+          "description": "Response mentions the KGW_ENABLE_ISTIO_INTEGRATION env var / flag for Istio ServiceEntry watching"
+        },
+        {
+          "name": "provides-helm-upgrade-commands",
+          "description": "Response includes the Helm upgrade commands for kgateway-crds and kgateway charts"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "I need to debug why requests to my service are getting 503s. The HTTPRoute looks correct and the pods are running. How do I investigate using kgateway's debugging tools?",
+      "expected_output": "Systematic debug steps: kubectl describe httproute, port-forward to admin interfaces (9095 and 19000), config_dump, cluster stats, log level increase commands",
+      "files": [],
+      "assertions": [
+        {
+          "name": "mentions-control-plane-admin-port-9095",
+          "description": "Response mentions port 9095 for the kgateway control plane admin interface"
+        },
+        {
+          "name": "mentions-proxy-admin-port-19000",
+          "description": "Response mentions port 19000 for the Envoy gateway proxy admin interface"
+        },
+        {
+          "name": "mentions-config-dump-or-clusters",
+          "description": "Response mentions config_dump, clusters, or another Envoy admin endpoint to inspect configuration"
+        },
+        {
+          "name": "provides-systematic-checklist",
+          "description": "Response provides a structured/ordered set of diagnostic steps rather than a single command"
+        },
+        {
+          "name": "includes-log-inspection",
+          "description": "Response includes kubectl logs command for either the control plane or proxy deployment"
+        }
+      ]
+    }
+  ]
+}

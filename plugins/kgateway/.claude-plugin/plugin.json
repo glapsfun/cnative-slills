@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "kgateway",
+  "displayName": "kgateway",
+  "version": "1.0.0",
+  "description": "Expert guide for kgateway — the CNCF Kubernetes Gateway API implementation powered by Envoy: installation, Gateway/HTTPRoute/TCPRoute setup, traffic management, security (TLS, JWT, ext-auth, rate limiting), resiliency, Istio integration, observability, debugging, and upgrade procedures",
+  "author": {
+    "name": "vladtara",
+    "email": "vlad@glaps.fun"
+  },
+  "homepage": "https://github.com/glapsfun/cnative-slills",
+  "repository": "https://github.com/glapsfun/cnative-slills",
+  "license": "MIT",
+  "keywords": ["kgateway", "kubernetes", "gateway-api", "envoy", "ingress", "api-gateway", "cloud-native", "cncf", "istio", "traffic-management"]
+}

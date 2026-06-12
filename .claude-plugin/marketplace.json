@@ -19,6 +19,13 @@
       "description": "Expert guide for kagent — the Kubernetes-native framework for running AI agents: CLI, Agent/ModelConfig/RemoteMCPServer CRDs, MCP tools, A2A subagents, human-in-the-loop approval, memory, IDE integration, and troubleshooting",
       "category": "cloud-native",
       "tags": ["kagent", "kubernetes", "ai-agents", "mcp", "a2a"]
+    },
+    {
+      "name": "kgateway",
+      "source": "./plugins/kgateway",
+      "description": "Expert guide for kgateway — the CNCF Kubernetes Gateway API implementation powered by Envoy (formerly Gloo): installation, Gateway/HTTPRoute setup, traffic management, security (TLS, JWT, ext-auth, rate limiting), resiliency, Istio integration, observability, and debugging",
+      "category": "cloud-native",
+      "tags": ["kgateway", "kubernetes", "gateway-api", "envoy", "ingress", "api-gateway"]
     }
   ]
 }
