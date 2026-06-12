@@ -5,13 +5,10 @@
     "name": "vladtara",
     "email": "vlad@glaps.fun"
   },
-  "metadata": {
-    "pluginRoot": "./plugins"
-  },
   "plugins": [
     {
       "name": "kubernetes-operator",
-      "source": "kubernetes-operator",
+      "source": "./plugins/kubernetes-operator",
       "description": "Expert Kubernetes assistant — kubectl, manifests, Helm, GitOps (Flux/Argo CD), security hardening, debugging playbooks, and cluster operations",
       "category": "cloud-native",
       "tags": ["kubernetes", "k8s", "kubectl", "helm", "gitops"]
