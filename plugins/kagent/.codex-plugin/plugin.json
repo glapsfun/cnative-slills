@@ -1,0 +1,45 @@
+{
+  "name": "kagent",
+  "version": "1.0.0",
+  "description": "Expert guide for kagent, the Kubernetes-native framework for running AI agents with CRDs, MCP tools, A2A subagents, approval flows, memory, and troubleshooting.",
+  "author": {
+    "name": "vladtara",
+    "email": "vlad@glaps.fun",
+    "url": "https://github.com/glapsfun"
+  },
+  "homepage": "https://github.com/glapsfun/cnative-slills",
+  "repository": "https://github.com/glapsfun/cnative-slills",
+  "license": "MIT",
+  "keywords": [
+    "kagent",
+    "kubernetes",
+    "ai-agents",
+    "mcp",
+    "a2a",
+    "llm",
+    "cloud-native"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "kagent",
+    "shortDescription": "kagent AI agents on Kubernetes guidance",
+    "longDescription": "Use kagent to design, install, configure, operate, and troubleshoot Kubernetes-native AI agents, CRDs, MCP integrations, approval flows, memory, and observability.",
+    "developerName": "vladtara",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/glapsfun/cnative-slills",
+    "privacyPolicyURL": "https://github.com/glapsfun/cnative-slills",
+    "termsOfServiceURL": "https://github.com/glapsfun/cnative-slills",
+    "defaultPrompt": [
+      "Use kagent to design an agent workflow.",
+      "Use kagent to troubleshoot this Agent CRD.",
+      "Use kagent to configure MCP tools."
+    ],
+    "brandColor": "#111111",
+    "screenshots": []
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "name": "kubernetes-operator",
+  "version": "1.0.1",
+  "description": "Expert Kubernetes assistant for kubectl, manifests, Helm, GitOps, security hardening, debugging playbooks, and cluster operations.",
+  "author": {
+    "name": "vladtara",
+    "email": "vlad@glaps.fun",
+    "url": "https://github.com/glapsfun"
+  },
+  "homepage": "https://github.com/glapsfun/cnative-slills",
+  "repository": "https://github.com/glapsfun/cnative-slills",
+  "license": "MIT",
+  "keywords": [
+    "kubernetes",
+    "k8s",
+    "kubectl",
+    "helm",
+    "gitops",
+    "flux",
+    "argocd",
+    "cloud-native"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Kubernetes Operator",
+    "shortDescription": "Kubernetes operations and debugging guidance",
+    "longDescription": "Use Kubernetes Operator to inspect clusters, write and review manifests, work with Helm and GitOps, harden workloads, and troubleshoot common Kubernetes failures.",
+    "developerName": "vladtara",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/glapsfun/cnative-slills",
+    "privacyPolicyURL": "https://github.com/glapsfun/cnative-slills",
+    "termsOfServiceURL": "https://github.com/glapsfun/cnative-slills",
+    "defaultPrompt": [
+      "Use Kubernetes Operator to debug this cluster issue.",
+      "Use Kubernetes Operator to review these manifests.",
+      "Use Kubernetes Operator to design a Helm deployment."
+    ],
+    "brandColor": "#326CE5",
+    "screenshots": []
+  }
+}

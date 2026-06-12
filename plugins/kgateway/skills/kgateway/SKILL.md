@@ -1,20 +1,13 @@
 ---
 name: kgateway
 description: >
-  Expert guide for kgateway — the CNCF sandbox Kubernetes Gateway API implementation backed by
-  Envoy (formerly Gloo by Solo.io). Covers installation via Helm, Gateway/GatewayClass/HTTPRoute/
-  TCPRoute setup, kgateway-specific CRDs (GatewayParameters, GatewayExtension, TrafficPolicy,
-  ListenerPolicy, BackendConfigPolicy, Backend, DirectResponse), traffic management (routing,
-  splitting, delegation, transformations, redirects), security (TLS/mTLS, JWT, external auth,
-  API keys, rate limiting, CORS, CSRF, IP ACL), resiliency (retries, timeouts, circuit breakers,
-  fault injection), Istio ambient and sidecar mesh integration, observability (OpenTelemetry,
-  metrics, access logging, tracing), debugging (admin interface, xDS snapshots, log levels),
-  upgrade procedures, and version-specific migration notes. Use this skill whenever the user
-  mentions kgateway, kgateway.dev, Gloo gateway, configuring an HTTPRoute or Gateway in Kubernetes,
-  Envoy-based ingress, deploying an API gateway on Kubernetes, Gateway API policies, TrafficPolicy
-  or ListenerPolicy CRDs, rate limiting at the gateway level, JWT validation at ingress, or is
-  debugging a kgateway installation — even if they don't say "kgateway" but describe managing
-  Kubernetes ingress or API gateway traffic with Envoy.
+  Expert guide for kgateway, the CNCF Kubernetes Gateway API implementation backed by Envoy.
+  Covers Helm installation, Gateway/GatewayClass/HTTPRoute/TCPRoute setup, kgateway CRDs,
+  traffic management, security policies, resiliency, Istio integration, observability,
+  debugging with admin/xDS/logs, upgrades, and version-specific migration notes. Use when the
+  user mentions kgateway, kgateway.dev, Gloo gateway, Envoy-based Kubernetes ingress, Gateway
+  API policies, TrafficPolicy, ListenerPolicy, rate limiting, JWT validation, or debugging a
+  kgateway installation.
 ---
 
 # kgateway User Guide

@@ -1,0 +1,48 @@
+{
+  "name": "kgateway",
+  "version": "1.0.0",
+  "description": "Expert guide for kgateway, the CNCF Kubernetes Gateway API implementation powered by Envoy for routing, security, resiliency, observability, debugging, and upgrades.",
+  "author": {
+    "name": "vladtara",
+    "email": "vlad@glaps.fun",
+    "url": "https://github.com/glapsfun"
+  },
+  "homepage": "https://github.com/glapsfun/cnative-slills",
+  "repository": "https://github.com/glapsfun/cnative-slills",
+  "license": "MIT",
+  "keywords": [
+    "kgateway",
+    "kubernetes",
+    "gateway-api",
+    "envoy",
+    "ingress",
+    "api-gateway",
+    "cloud-native",
+    "cncf",
+    "istio",
+    "traffic-management"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "kgateway",
+    "shortDescription": "kgateway and Gateway API guidance",
+    "longDescription": "Use kgateway to install and operate Envoy-backed Kubernetes Gateway API infrastructure, configure routes and policies, secure ingress, manage resilience, observe traffic, and debug upgrades.",
+    "developerName": "vladtara",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/glapsfun/cnative-slills",
+    "privacyPolicyURL": "https://github.com/glapsfun/cnative-slills",
+    "termsOfServiceURL": "https://github.com/glapsfun/cnative-slills",
+    "defaultPrompt": [
+      "Use kgateway to debug this HTTPRoute.",
+      "Use kgateway to configure JWT at ingress.",
+      "Use kgateway to plan a Gateway API rollout."
+    ],
+    "brandColor": "#7C3AED",
+    "screenshots": []
+  }
+}

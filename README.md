@@ -21,14 +21,14 @@ To pick up new versions later:
 
 ### Codex
 
-Add this repository as a Codex plugin marketplace and install the FluxCD plugin:
+Add this repository as a Codex plugin marketplace and install a plugin:
 
 ```
 /plugin marketplace add glapsfun/cnative-slills
-/plugin install fluxcd@cnative-skills
+/plugin install kubernetes-operator@cnative-skills
 ```
 
-Codex marketplace metadata lives in `.agents/plugins/marketplace.json`; the plugin manifest lives in `plugins/fluxcd/.codex-plugin/plugin.json`.
+Codex marketplace metadata lives in `.agents/plugins/marketplace.json`; plugin manifests live in `plugins/<name>/.codex-plugin/plugin.json`.
 
 ## Plugins
 
@@ -51,12 +51,15 @@ Install any plugin the same way: `/plugin install <name>@cnative-skills`.
 plugins/
   kubernetes-operator/
     .claude-plugin/plugin.json      ← plugin manifest
+    .codex-plugin/plugin.json       ← Codex plugin manifest
     skills/kubernetes-operator/     ← the skill (SKILL.md + references + evals)
   kagent/
     .claude-plugin/plugin.json
+    .codex-plugin/plugin.json
     skills/kagent/
   kgateway/
     .claude-plugin/plugin.json
+    .codex-plugin/plugin.json
     skills/kgateway/
   fluxcd/
     .claude-plugin/plugin.json
