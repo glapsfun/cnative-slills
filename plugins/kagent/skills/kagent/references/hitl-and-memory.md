@@ -123,8 +123,9 @@ When enabled, the agent's instruction is automatically extended and it gains:
 
 - **`save_memory`** — the agent explicitly saves a fact verbatim (no summarization).
 - **`load_memory`** — semantic search over stored memories; results filtered by a minimum similarity score.
+- **`prefetch_memory`** — explicit access to the same prefetch behavior exposed as a tool.
 - **Prefetch** — on the *first* user message of a session only, relevant memories are automatically retrieved and injected into that turn (the prompt is split into sentences for better matching). Prefetch does not run on every turn — that would be too expensive.
-- **Auto-save** — every 5 user turns, the session is summarized by the LLM in the background and the summary is embedded and stored.
+- **Auto-save** — every 5 user messages, the session is summarized by the LLM in the background and the summary is embedded and stored.
 
 ### Memory lifecycle
 

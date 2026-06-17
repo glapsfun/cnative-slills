@@ -2,14 +2,16 @@
 name: kagent
 description: >
   Expert guide for kagent — the open-source CNCF framework for building, deploying, and running
-  AI agents on Kubernetes. Covers the kagent CLI, declarative and BYO agents (Agent, ModelConfig,
-  RemoteMCPServer CRDs), LLM provider setup, MCP tools, A2A subagents, human-in-the-loop tool
-  approval, long-term agent memory, exposing agents to IDEs like Claude Code and Cursor via MCP,
-  Helm values, OIDC authentication, observability, and systematic troubleshooting. Use this skill
-  whenever the user mentions kagent, kagent.dev, deploying AI agents to Kubernetes, Agent or
-  ModelConfig or RemoteMCPServer YAML, kagent CLI commands, connecting cluster agents to an IDE,
-  tool approval flows, agent memory, or is debugging kagent — even if they don't say "kagent" but
-  describe running LLM agents inside a Kubernetes cluster.
+  AI agents on Kubernetes. Covers the kagent CLI, declarative and BYO agents (Agent, SandboxAgent,
+  ModelConfig, RemoteMCPServer, MCPServer CRDs), LLM provider setup, MCP and HTTP tools, A2A
+  subagents, human-in-the-loop tool approval, long-term agent memory, context compaction,
+  Git/OCI-based kagent skills, AgentHarness/OpenShell, Agent Substrate runtimes, exposing agents to
+  IDEs like Claude Code and Cursor via MCP, Helm values, OIDC authentication, observability, and
+  systematic troubleshooting. Use this skill whenever the user mentions kagent, kagent.dev,
+  deploying AI agents to Kubernetes, Agent or ModelConfig or RemoteMCPServer YAML, kagent CLI
+  commands, connecting cluster agents to an IDE, tool approval flows, agent memory, context
+  management, or is debugging kagent — even if they don't say "kagent" but describe running LLM
+  agents inside a Kubernetes cluster.
 ---
 
 # kagent User Guide
@@ -23,7 +25,7 @@ When helping users, adapt to their experience level. A first-time user asking "h
 **Verify before you advise.** This skill teaches concepts and workflows, but exact values (env var names, Helm keys, CRD field names, label selectors, default ports) drift between kagent versions — and several features here (memory, human-in-the-loop, context compaction) are recent additions that may not exist in older installs. Before giving users specific syntax, verify against the live environment when possible:
 - **CLI flags:** `kagent <command> --help`
 - **Helm values:** `helm show values oci://ghcr.io/kagent-dev/kagent/helm/kagent`
-- **CRD schemas:** `kubectl explain agent.spec.declarative` or `kubectl explain agent.spec.declarative.memory`
+- **CRD schemas:** `kubectl explain agent.spec.declarative`, `kubectl explain agent.spec.skills.gitRefs`, `kubectl explain agent.spec.declarative.context.compaction`, or `kubectl explain sandboxagent.spec`
 - **Installed version:** `kagent version` — cross-reference with https://kagent.dev/docs for version-appropriate guidance
 - **Pod labels:** `kubectl get pods -n kagent --show-labels`
 
@@ -42,6 +44,7 @@ If you cannot verify (e.g., no cluster access), use this skill's examples but fl
 | Scaffold BYO agent | `kagent init adk python myagent ...` |
 | Build / run / deploy | `kagent build`, `kagent run`, `kagent deploy .` |
 | Expose agents as MCP | Controller `/mcp` HTTP endpoint on port 8083 |
+| Verify CRD fields | `kubectl explain agent.spec.declarative` |
 | Bug report | `kagent bug-report` |
 
 **Tip:** Run `kagent <command> --help` for full flag details. See `references/cli-reference.md` for a conceptual overview of all command groups.
@@ -63,13 +66,16 @@ For Helm install, other LLM providers, and provider-specific configuration, see 
 kagent uses Kubernetes CRDs (API version `kagent.dev/v1alpha2`) to manage agents, models, and tools:
 
 - **Agent** — Defines an AI agent. Two types: **Declarative** (YAML-defined, controller-managed; the controller generates a Deployment + Service per agent) and **BYO** (custom container image with any framework: Google ADK, OpenAI Agents SDK, LangGraph, CrewAI).
+- **SandboxAgent** — Uses the Agent spec shape but runs through an isolated sandbox backend for stricter process, network, and filesystem controls.
 - **ModelConfig** — Configures LLM provider and model. Agents reference a ModelConfig by name (same namespace).
 - **RemoteMCPServer** — Connects agents to MCP tool servers over HTTP. The controller connects, lists tools, and records them in `status.discoveredTools`.
 - **MCPServer** (KMCP, included since v0.7) — Deploys and manages MCP server pods in the cluster.
+- **AgentHarness / Agent Substrate** — Newer execution options for OpenShell-backed harnesses and Kubernetes-native agent runtimes. Verify availability against the installed CRDs before recommending them.
 
 **Key rules that prevent the most common mistakes:**
 - Tool references in agents **must** include `apiGroup: kagent.dev` for both MCPServer and RemoteMCPServer kinds — omitting it causes reconciliation failures.
 - `skills.refs` is a list of strings (OCI image refs), not objects, and `skills` sits at `spec` level, not under `declarative`.
+- Git-based skills use `spec.skills.gitRefs[]` with `url`, `ref`, optional `path`, and optional `gitAuthSecretRef`; OCI and Git skills can be combined.
 - `systemMessage` and `systemMessageFrom` are mutually exclusive.
 - Agent status has two conditions: `Accepted` (spec is valid) and `Ready`/`DeploymentReady` (pod running) — an agent must have both to serve traffic.
 
@@ -77,9 +83,9 @@ For full CRD examples, system prompt design, prompt templates, and deployment op
 
 ## Adding Tools to Agents
 
-Agents gain capabilities through MCP (Model Context Protocol) tools. Create a `RemoteMCPServer` to connect to an existing server, or use KMCP `MCPServer` to deploy one in-cluster. Then reference it in the Agent's `tools` list, optionally filtering with `toolNames`.
+Agents gain capabilities through MCP (Model Context Protocol) tools. Create a `RemoteMCPServer` to connect to an existing server, or use KMCP `MCPServer` to deploy one in-cluster. Then reference it in the Agent's `tools` list, optionally filtering with `toolNames`, passing per-call headers with `headersFrom`, or setting `namespace` for cross-namespace references.
 
-For RemoteMCPServer YAML, auth headers, tool filtering, and complete examples, see `references/agent-configuration.md`.
+kagent also supports HTTP tool discovery for OpenAPI-compliant services and can develop/deploy MCP servers through KMCP. For RemoteMCPServer YAML, auth headers, cross-namespace references, tool filtering, and complete examples, see `references/agent-configuration.md`.
 
 ## Subagents — Agents as Tools (A2A)
 
@@ -95,9 +101,17 @@ Configuration, UI flow, and the wire protocol (for custom clients): `references/
 
 ## Long-Term Memory
 
-Enable per-agent memory under `spec.declarative.memory`. Agents get `save_memory` / `load_memory` tools plus automatic prefetch of relevant memories on the first message of a session; sessions are auto-summarized into memory every few turns. Memories are vector-embedded, TTL'd (default 15 days), and pruned by popularity. Requires a vector-capable database (bundled SQLite supports it; for Postgres set `database.postgres.vectorEnabled=true`).
+Enable per-agent memory under `spec.declarative.memory`. Agents get `save_memory`, `load_memory`, and `prefetch_memory` tools plus automatic prefetch of relevant memories on the first message of a session; sessions are auto-summarized into memory every 5 user messages. Memories are vector-embedded, TTL'd (default 15 days), and pruned by popularity. Requires a vector-capable database (bundled SQLite supports it; for Postgres set `database.postgres.vectorEnabled=true`).
 
 Setup and mechanics: `references/hitl-and-memory.md`.
+
+## Runtime, Skills, and Context Management
+
+Declarative agents can choose `runtime: python` (default) or `runtime: go`. Use Go for faster startup and lower resource use when Python framework integrations are not needed; use Python when depending on ADK-native Python integrations, LangGraph, CrewAI, or Python custom tools.
+
+kagent skills are separate from Codex skills: they are runtime capabilities loaded into kagent agents from OCI image refs (`spec.skills.refs`) or Git refs (`spec.skills.gitRefs`). Use them to package reusable agent behavior and align them with the tools available to that agent.
+
+For long conversations or large tool outputs, enable `spec.declarative.context.compaction` to compact older events. Use `tokenThreshold` or `compactionInterval` for automatic compaction, and configure a summarizer when older context must be preserved instead of discarded.
 
 ## Exposing Agents as MCP Servers (IDE Integration)
 
@@ -133,9 +147,9 @@ For systematic debugging (agent rejected vs not-ready, MCP session failures, stu
 | File | Read when the task involves |
 |---|---|
 | `references/agent-configuration.md` | Agent CRD fields (declarative + BYO), RemoteMCPServer, ModelConfig basics, tool references, subagents, prompt templates and the built-in prompt library, system prompt design, built-in demo agents |
-| `references/providers.md` | LLM provider setup (OpenAI, Anthropic, Azure, Gemini, Vertex, Bedrock, Ollama, OpenAI-compatible), Helm provider values, ModelConfig provider-specific tuning fields, TLS to providers, API key passthrough |
+| `references/providers.md` | LLM provider setup (OpenAI, Anthropic, Azure, Gemini, Vertex, Bedrock, Ollama, xAI/Grok, SAP AI Core, OpenAI-compatible), Helm provider values, ModelConfig provider-specific tuning fields, TLS to providers, API key passthrough |
 | `references/hitl-and-memory.md` | Human-in-the-loop approval (`requireApproval`), `ask_user`, approval through subagents, HITL wire protocol; enabling memory, memory tools and lifecycle, embedding model config |
-| `references/operations.md` | Helm values reference, database options and pgvector, OIDC/oauth2-proxy auth, OpenTelemetry tracing, architecture (components, ports, controller API endpoints, reconciliation), multi-namespace watching |
+| `references/operations.md` | Helm values reference, database options and pgvector, OIDC/oauth2-proxy auth, OpenTelemetry tracing, AgentHarness/OpenShell setup, architecture (components, ports, controller API endpoints, reconciliation), multi-namespace watching |
 | `references/cli-reference.md` | kagent CLI command groups: install, invoke, get, BYO lifecycle (init/build/run/deploy), MCP server development commands |
 | `references/mcp-ide-setup.md` | Connecting Claude Code, Cursor, or other MCP editors to the controller's `/mcp` endpoint; IDE config JSON; MCP integration troubleshooting |
 | `references/troubleshooting.md` | Diagnosing rejected or not-ready agents, MCP session failures, dashboard/CLI connectivity, debug logging, stuck HITL tasks, memory not working |

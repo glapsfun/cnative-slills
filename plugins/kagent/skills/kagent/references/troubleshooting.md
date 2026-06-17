@@ -11,6 +11,8 @@
 - MCP tools not available to agent
 - Session stuck waiting (HITL approvals)
 - Memory not working
+- Context compaction not working
+- SandboxAgent or AgentHarness not reconciling
 - Dashboard not accessible
 - CLI can't connect to controller
 - MCP IDE integration not working
@@ -160,6 +162,24 @@ If any of the agent's tools have `requireApproval` (or it called the built-in `a
 - The embedding `modelConfig` referenced under `memory` must exist and be valid (it's a separate ModelConfig from the chat model).
 - On Postgres, pgvector must be enabled: `database.postgres.vectorEnabled=true` (Helm). Bundled SQLite works out of the box.
 - Memories have a default 15-day TTL and are pruned — old, rarely-used entries disappearing is by design.
+
+### Context compaction not working
+
+**Symptoms:** Long sessions still exceed model context limits, or older context disappears unexpectedly.
+
+**Checks:**
+- Does the installed version support compaction? `kubectl explain agent.spec.declarative.context.compaction`
+- If compacted content must be preserved, configure `summarizer.modelConfig`; otherwise compacted events may be discarded.
+- Confirm the compaction trigger is reachable: `compactionInterval` counts user invocations, while `tokenThreshold` triggers only after an invocation exceeds the threshold.
+- Check the Agent `Accepted` condition for template/schema errors and controller logs for summarizer failures.
+
+### SandboxAgent or AgentHarness not reconciling
+
+**Checks:**
+- Verify the CRDs exist: `kubectl api-resources | grep -i 'sandboxagent\|agentharness'`
+- For SandboxAgent, inspect `kubectl explain sandboxagent.spec` and confirm sandbox runtime dependencies are installed.
+- For AgentHarness, confirm OpenShell is deployed and the controller has `OPENSHELL_GATEWAY_URL` set.
+- Check `Accepted` first. If accepted but not ready, inspect the generated workload and controller logs.
 
 ### Dashboard not accessible
 

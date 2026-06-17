@@ -9,6 +9,10 @@
 - Subagents — agents as tools (A2A)
 - ModelConfig basics
 - Cross-namespace references (`allowedNamespaces`)
+- OCI and Git-based skills
+- Runtime selection and context compaction
+- SandboxAgent
+- AgentHarness and OpenShell-backed execution
 - System prompt design
 - Prompt templates and the built-in prompt library
 - Built-in agents (demo profile)
@@ -51,11 +55,21 @@ spec:
 
     # stream: true                # stream responses
 
+    # Context compaction for long sessions or large tool outputs
+    # context:
+    #   compaction:
+    #     compactionInterval: 5
+    #     overlapSize: 2
+    #     tokenThreshold: 120000
+    #     summarizer:
+    #       modelConfig: summary-model
+
     # Tools the agent can use
     tools:
     - type: McpServer
       mcpServer:
         name: k8s-tools        # name of MCPServer resource
+        # namespace: tools      # optional cross-namespace reference
         kind: MCPServer         # MCPServer or RemoteMCPServer
         apiGroup: kagent.dev    # required for BOTH MCPServer and RemoteMCPServer
         toolNames:              # optional: filter to specific tools
@@ -106,6 +120,12 @@ spec:
   skills:
     refs:
     - ghcr.io/my-org/my-skill:latest
+    # gitAuthSecretRef:
+    #   name: git-credentials   # optional Secret with token key, applies to all gitRefs
+    # gitRefs:
+    # - url: https://github.com/my-org/agent-skills.git
+    #   ref: main
+    #   path: skills/kubernetes # optional subdirectory
 ```
 
 For `requireApproval` behavior and the built-in `ask_user` tool, see `hitl-and-memory.md`. For `memory` mechanics, see the same file.
@@ -165,13 +185,14 @@ spec:
 
 ### Referencing a RemoteMCPServer in an Agent
 
-When adding a RemoteMCPServer to an agent's tool list, always include `apiGroup: kagent.dev`:
+When adding a RemoteMCPServer to an agent's tool list, always include `apiGroup: kagent.dev`. Use `namespace` when the tool server is in another namespace, and confirm the referenced resource allows it with `allowedNamespaces`:
 
 ```yaml
 tools:
 - type: McpServer
   mcpServer:
     name: external-tools
+    # namespace: tools
     kind: RemoteMCPServer
     apiGroup: kagent.dev          # required — omitting causes reconciliation issues
     toolNames:                    # optional: limit to specific tools
@@ -181,6 +202,10 @@ tools:
 ## MCPServer Resource (KMCP)
 
 MCPServer resources are managed by the KMCP controller (included with kagent since v0.7). These deploy and manage MCP server pods directly in the cluster. See the kmcp documentation for details on creating MCPServer resources.
+
+## HTTP Tools and Header Overrides
+
+kagent can discover HTTP tools from OpenAPI-compliant services. For MCP and HTTP tools that need request metadata, use `headersFrom` on the agent tool reference to pass values from Secrets or ConfigMaps in the agent namespace. Values in `headersFrom` override headers configured on the tool server itself.
 
 ## Subagents — Agents as Tools (A2A)
 
@@ -217,7 +242,7 @@ metadata:
   name: default-model-config
   namespace: kagent
 spec:
-  provider: OpenAI       # OpenAI, Anthropic, AzureOpenAI, Gemini, GeminiVertexAI, AnthropicVertexAI, Ollama, Bedrock
+  provider: OpenAI       # OpenAI, Anthropic, AzureOpenAI, Gemini, GeminiVertexAI, AnthropicVertexAI, Ollama, Bedrock, SAPAICore
   model: gpt-4.1-mini
   apiKeySecret: llm-api-key      # name of the K8s Secret
   apiKeySecretKey: api-key       # key within the Secret
@@ -228,6 +253,54 @@ spec:
 ```
 
 Provider-specific tuning blocks (`openAI`, `anthropic`, `azureOpenAI`, ...) and TLS details: see `providers.md`.
+
+## OCI and Git-Based Skills
+
+kagent skills are runtime capabilities loaded into the agent, not Codex skills. Use OCI refs for registry-published skills and Git refs for repository-hosted skills:
+
+```yaml
+spec:
+  skills:
+    refs:
+    - ghcr.io/my-org/incident-skill:1.2.3
+    gitAuthSecretRef:
+      name: git-credentials   # optional Secret with token key
+    gitRefs:
+    - url: https://github.com/my-org/agent-skills.git
+      ref: main
+      path: skills/kubernetes
+```
+
+Keep each skill focused and aligned with the agent's actual tools. A skill that guides Kubernetes remediation should be paired with Kubernetes read/write tools; otherwise the model may plan actions it cannot execute.
+
+## Runtime Selection and Context Compaction
+
+Declarative agents default to the Python runtime. Set `runtime: go` when fast cold starts and lower resource usage matter and the agent does not need Python-specific framework integrations:
+
+```yaml
+spec:
+  type: Declarative
+  declarative:
+    runtime: go
+    modelConfig: default-model-config
+    systemMessage: "You are a fast incident triage agent."
+```
+
+For long-running chats or tools with large outputs, configure context compaction:
+
+```yaml
+spec:
+  declarative:
+    context:
+      compaction:
+        compactionInterval: 5
+        overlapSize: 2
+        tokenThreshold: 120000
+        summarizer:
+          modelConfig: summary-model
+```
+
+Without a summarizer, compacted events can be discarded. Add a summarizer when older context must be retained as a summary.
 
 ## Cross-Namespace References (`allowedNamespaces`)
 
@@ -243,6 +316,33 @@ spec:
 ```
 
 If a cross-namespace tool or subagent reference is rejected, check this field on the *referenced* resource.
+
+## SandboxAgent
+
+Use `SandboxAgent` when the agent needs stricter isolation. The spec is shaped like `Agent`, but the controller creates a sandbox-backed workload instead of a normal Deployment. Sandbox agents restrict process execution, outbound network access, and filesystem writes by default.
+
+```yaml
+apiVersion: kagent.dev/v1alpha2
+kind: SandboxAgent
+metadata:
+  name: safe-triage-agent
+  namespace: kagent
+spec:
+  type: Declarative
+  declarative:
+    modelConfig: default-model-config
+    systemMessage: "You investigate safely and ask before changing anything."
+  sandbox:
+    network:
+      allowedDomains:
+      - api.openai.com
+```
+
+Verify exact fields with `kubectl explain sandboxagent.spec` because sandbox support depends on the installed kagent version and backing runtime.
+
+## AgentHarness and OpenShell
+
+`AgentHarness` resources require an OpenShell gateway reachable from the controller. Enable the controller integration with Helm values such as `controller.openshell.enabled=true` and controller environment variables for `OPENSHELL_GATEWAY_URL` and `OPENSHELL_INSECURE`. Use this only after confirming the CRDs and OpenShell deployment are present; otherwise guide users toward normal `Agent` or `SandboxAgent` resources.
 
 ## System Prompt Design
 

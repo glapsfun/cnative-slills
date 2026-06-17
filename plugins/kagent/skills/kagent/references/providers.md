@@ -10,6 +10,7 @@
 - API key passthrough
 - Multiple providers
 - BYO OpenAI-compatible provider
+- xAI/Grok and SAP AI Core notes
 
 kagent supports multiple LLM providers. Configure them via Helm values, the dashboard, or ModelConfig CRDs.
 
@@ -25,6 +26,8 @@ kagent supports multiple LLM providers. Configure them via Helm values, the dash
 | Anthropic via Vertex AI | `anthropicVertexAI` | (service account — `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION`) |
 | Amazon Bedrock | `bedrock` | (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`) |
 | Ollama | `ollama` | (none — local, uses `OLLAMA_API_BASE` for endpoint) |
+| xAI/Grok | OpenAI-compatible | `XAI_API_KEY` |
+| SAP AI Core | `sapAICore` | OAuth2 client credentials in Secret |
 | BYO OpenAI-compatible | custom | varies |
 
 **Helm key convention:** Provider names are camelCase with lowercase first letter (e.g., `openAI`, `azureOpenAI`, `geminiVertexAI`). The `provider` field in ModelConfig uses PascalCase (`OpenAI`, `Anthropic`, `AzureOpenAI`, ...).
@@ -125,6 +128,7 @@ Each provider has an optional config block — it must only be set when `provide
 | `ollama` | `host`, `options` |
 | `geminiVertexAI` / `anthropicVertexAI` | `projectID`, `location`, `temperature`, max token fields |
 | `bedrock` | `region` |
+| `sapAICore` | `baseUrl`, `authUrl`, `resourceGroup` |
 
 Example with tuning:
 
@@ -174,3 +178,11 @@ spec:
   openAI:
     baseUrl: https://vllm.internal.example.com/v1
 ```
+
+### xAI / Grok
+
+xAI is configured as an OpenAI-compatible provider: create a Secret with `XAI_API_KEY`, set `provider: OpenAI`, and point the OpenAI-compatible base URL at `https://api.x.ai/v1`. Current docs differ between `baseUrl` and `baseURL` examples, so verify the exact field casing with `kubectl explain modelconfig.spec.openAI` for the installed CRD before applying YAML.
+
+### SAP AI Core
+
+SAP AI Core uses `provider: SAPAICore` and a `sapAICore` block. Its Secret stores OAuth2 `client_id` and `client_secret` values, and `apiKeySecretKey` is not used. Required provider settings include the SAP AI Core base URL and model name; `authUrl` and `resourceGroup` are commonly set from the service key.

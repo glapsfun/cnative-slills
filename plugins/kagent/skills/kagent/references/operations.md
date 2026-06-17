@@ -8,6 +8,7 @@
 - Database configuration
 - Authentication (OIDC via oauth2-proxy)
 - Observability (OpenTelemetry tracing)
+- AgentHarness / OpenShell support
 - Multi-namespace watching
 
 > Helm keys below reflect recent kagent versions and may drift. Verify with
@@ -75,6 +76,7 @@ Key values:
 | `otel.tracing.enabled` | `false` | OpenTelemetry tracing |
 | `otel.tracing.exporter.otlp.endpoint` / `.protocol` | — / `grpc` | OTLP collector target |
 | `oauth2-proxy.enabled` | `false` | Deploy the bundled oauth2-proxy subchart |
+| `controller.openshell.enabled` | `false` | Enable OpenShell-backed AgentHarness support when available |
 | `querydoc.enabled` | `true` | Documentation-query tool service |
 
 Upgrade pattern (preserve existing values):
@@ -115,6 +117,23 @@ helm upgrade kagent oci://ghcr.io/kagent-dev/kagent/helm/kagent \
 ```
 
 Traces cover agent invocations and tool calls — useful for diagnosing slow responses (LLM latency vs tool latency) and seeing full multi-agent call trees. The dashboard itself shows per-session chat history and tool invocations without any extra setup.
+
+## AgentHarness / OpenShell Support
+
+AgentHarness resources need an OpenShell gateway that the kagent controller can reach. Before recommending this path, verify both the kagent CRDs and the OpenShell deployment are installed. Typical controller settings include:
+
+```yaml
+controller:
+  openshell:
+    enabled: true
+  env:
+  - name: OPENSHELL_GATEWAY_URL
+    value: dns:///openshell.openshell.svc:8080
+  - name: OPENSHELL_INSECURE
+    value: "true"
+```
+
+Use authenticated and TLS-protected OpenShell settings for shared or production clusters. Demo examples often disable TLS/auth; call that out explicitly when adapting them.
 
 ## Multi-Namespace Watching
 

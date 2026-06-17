@@ -78,6 +78,24 @@
       "prompt": "I have a kagent k8s-agent and an observability-agent. I want a single 'incident-commander' agent that users talk to, which delegates to those two as needed. How do I wire that up, and will the user still see what the sub-agents are doing?",
       "expected_output": "Agent tools with type: Agent referencing the subagents (kind Agent, apiGroup kagent.dev), guidance on descriptions/a2aConfig skills for delegation quality, live nested activity in dashboard, hidden subagent sessions, conversation continuity within a parent request, and advice to keep nesting shallow.",
       "files": []
+    },
+    {
+      "id": 13,
+      "prompt": "I have reusable runbook instructions in a private GitHub repo and want my kagent incident agent to load them as skills. How do I configure that, and can I still use one OCI-packaged skill too?",
+      "expected_output": "Explain that kagent runtime skills live under spec.skills, with OCI image strings in refs and Git repositories in gitRefs. Include gitAuthSecretRef for private repo auth, url/ref/path fields, note that refs and gitRefs can be combined, and remind the user to align skills with the agent's available tools.",
+      "files": []
+    },
+    {
+      "id": 14,
+      "prompt": "Our support agent has very long chats and loses context after lots of tool calls. What kagent setting should I use, and how do I preserve a summary instead of just dropping old events?",
+      "expected_output": "Recommend spec.declarative.context.compaction with compactionInterval or tokenThreshold, overlapSize, and summarizer.modelConfig when summaries must be retained. Include verification with kubectl explain agent.spec.declarative.context.compaction and troubleshooting via Accepted condition/controller logs.",
+      "files": []
+    },
+    {
+      "id": 15,
+      "prompt": "Security asked if we can run a kagent agent in a stronger sandbox and block outbound network except to the model API. What resource should I look at?",
+      "expected_output": "Discuss SandboxAgent, explain that it follows the Agent spec shape but uses a sandbox-backed workload with process/network/filesystem restrictions, show allowedDomains-style network configuration, and tell the user to verify support with kubectl explain sandboxagent.spec because availability depends on installed version/runtime.",
+      "files": []
     }
   ]
 }

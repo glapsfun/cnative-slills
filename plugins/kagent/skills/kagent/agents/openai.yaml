@@ -1,0 +1,4 @@
+interface:
+  display_name: "kagent"
+  short_description: "Build and operate kagent AI agents"
+  default_prompt: "Use $kagent to install, configure, or troubleshoot Kubernetes-native AI agents."
