@@ -71,6 +71,12 @@ Apply this to every manifest you produce or review; each item prevents a real pr
 
 ## Scripts
 
-- `scripts/k8s-context-check.sh` — safe read-only helper for collecting local tool versions, current Kubernetes context, server/API discovery, and key `kubectl explain` probes before version-sensitive troubleshooting.
+All scripts are read-only and safe to run against a live cluster; each takes `-h`/`--help`. Use them to gather grounded evidence before answering — they automate the playbooks above.
+
+- `scripts/k8s-context-check.sh` — local tool versions, current Kubernetes context, server/API discovery, and key `kubectl explain` probes before version-sensitive troubleshooting.
+- `scripts/k8s-diagnose.sh` — triages unhealthy pods top-down (get → events → previous logs), classifying Pending, CrashLoopBackOff, ImagePullBackOff, CreateContainerConfigError, OOMKilled, stuck Terminating, and Unschedulable, with the recommended next step for each. Run this first on any "my pod is broken" question.
+- `scripts/k8s-manifest-lint.sh` — offline static review of manifest YAML (file or stdin, e.g. `helm template ... | k8s-manifest-lint.sh`) against the *Writing manifests* checklist: deprecated apiVersions, `:latest`/untagged images, missing requests/limits/probes, weak securityContext, default ServiceAccount, plaintext secrets in env.
+- `scripts/k8s-rbac-check.sh` — RBAC audit. With a ServiceAccount it reports effective permissions (`auth can-i --list`), high-risk verb checks, and the bindings that grant them — the fast path for `Forbidden` errors and over-permissioned workloads. With no argument it scans the cluster for risky bindings (cluster-admin/admin/edit).
+- `scripts/k8s-net-debug.sh` — Service connectivity triage: port→targetPort chain, Ready endpoint count, selector-vs-pod-label matching, NetworkPolicies selecting the backend pods, and the DNS FQDN to test. Run this for *Service not reachable*.
 
 Read the relevant file before answering in-depth questions in its area — they contain field-level specifics (exact defaults, version notes, failure modes) that make the difference between a plausible answer and a correct one.
