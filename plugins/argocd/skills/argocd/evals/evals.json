@@ -1,0 +1,35 @@
+{
+  "skill_name": "argocd",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "My ArgoCD app has been OutOfSync for days. I synced it manually and it said Sync OK but immediately went OutOfSync again. The app is a Deployment with an HPA. How do I fix this?",
+      "expected_output": "Explain that the HPA mutates spec.replicas, causing drift. Show how to add ignoreDifferences for /spec/replicas on the Deployment, plus RespectIgnoreDifferences=true in syncOptions. Provide the complete YAML snippet.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I need to set up ArgoCD so my GitHub org members automatically get read-only access and my 'platform' team gets admin. We use GitHub SSO. Show me the full config.",
+      "expected_output": "Show complete argocd-cm with dex.config using GitHub connector (clientID, clientSecret, orgs with teams), argocd-rbac-cm with policy.csv mapping org:platform-team to role:admin and org:members to role:readonly, plus scopes setting. Include how to store secrets.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I want to deploy an application to all clusters tagged with env=production using ApplicationSet. Each cluster has its own values file at clusters/<cluster-name>/values.yaml in my config repo. Write the ApplicationSet manifest.",
+      "expected_output": "Show a complete ApplicationSet using cluster generator with matchLabels env=production, combined with a git generator or inline values path using {{name}} placeholder. Template should reference clusters/{{name}}/values.yaml as a Helm valueFile.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "argocd app sync production-db-migration is stuck. The operation has been running for 30 minutes. It's a PreSync hook that runs a database migration job. How do I debug and recover?",
+      "expected_output": "Steps: terminate the operation with argocd app terminate-op, check the Job status with kubectl get job -n <ns>, check pod logs with kubectl logs -l job-name=<hook-name>, explain hook deletion policies (BeforeHookCreation means old failed hooks block new ones), show how to delete the stuck job and re-sync.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "How do I install ArgoCD in HA mode using Helm on an EKS cluster? I need it to handle 500+ applications.",
+      "expected_output": "Show helm repo add, helm install with argo/argo-cd chart, key HA values (server.replicas=2, repoServer.replicas=3, redis-ha.enabled=true), application controller sharding config (ARGOCD_CONTROLLER_REPLICAS, controller.env), and memory/CPU tuning for 500 apps (status-processors, operation-processors). Mention server-side apply for large CRDs.",
+      "files": []
+    }
+  ]
+}
