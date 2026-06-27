@@ -1,0 +1,3 @@
+# Follow `# shellcheck source=` directives so sourced helpers (scripts/lib/common.sh)
+# are analyzed instead of emitting SC1091.
+external-sources=true
