@@ -2,10 +2,10 @@
 #
 # bash-scaffold.sh — print a production-ready bash script skeleton to stdout.
 #
-# Emits strict mode, a usage/--help, a manual long-option parser with `--`
-# handling, leveled logging to stderr, a trap-based cleanup handler, and a
-# `main "$@"` source-guard so the result is testable with Bats. Redirect to a
-# file and edit the marked sections:
+# Emits a usage/--help, manual long-option parsing with `--` handling, leveled
+# logging to stderr, a trap-based cleanup handler, and direct-execution-only
+# initialization so the result is safe to source in tests. Redirect to a file
+# and edit the marked sections:
 #
 #   bash bash-scaffold.sh --name deploy --description "Deploy the app" > deploy.sh
 
@@ -64,16 +64,23 @@ main() {
   printf '#\n\n'
 
   cat <<'TEMPLATE'
-set -Eeuo pipefail
-IFS=$'\n\t'
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-# shellcheck disable=SC2034  # SCRIPT_DIR is here for your code to reference sibling files
-readonly SCRIPT_DIR
-readonly SCRIPT_NAME="${0##*/}"
+initialize_runtime() {
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+  # shellcheck disable=SC2034  # SCRIPT_DIR is here for your code to reference sibling files
+  readonly SCRIPT_DIR
+  SCRIPT_NAME="${0##*/}"
+  readonly SCRIPT_NAME
+  DRY_RUN=0
+}
 
 # --- logging (to stderr; stdout stays reserved for real output) -------------
-log() { printf '%s [%s] %s\n' "$(date +'%Y-%m-%dT%H:%M:%S%z')" "$1" "${*:2}" >&2; }
+log() {
+  local level=$1
+  shift
+  printf '%s [%q]' "$(date +'%Y-%m-%dT%H:%M:%S%z')" "${level}" >&2
+  (($# == 0)) || printf ' %q' "$@" >&2
+  printf '\n' >&2
+}
 log_info() { log "INFO" "$@"; }
 log_warn() { log "WARN" "$@"; }
 log_error() { log "ERROR" "$@"; }
@@ -83,8 +90,10 @@ die() {
 }
 
 usage() {
+  local script_name="${SCRIPT_NAME:-${0##*/}}"
+
   cat <<USAGE
-Usage: ${SCRIPT_NAME} [OPTIONS] <arg>
+Usage: ${script_name} [OPTIONS] <arg>
 
 Options:
   -v, --verbose   Enable verbose logging
@@ -100,14 +109,19 @@ cleanup() {
   trap - EXIT
   exit "${rc}"
 }
-trap cleanup EXIT
-trap 'die "interrupted"' INT TERM
+
+install_traps() {
+  trap cleanup EXIT
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
+}
 
 # Wrap mutating commands so --dry-run can short-circuit them.
-DRY_RUN=0
 run() {
-  if ((DRY_RUN)); then
-    printf 'DRY-RUN: %s\n' "$*" >&2
+  if ((${DRY_RUN:-0})); then
+    printf 'DRY-RUN:' >&2
+    printf ' %q' "$@" >&2
+    printf '\n' >&2
   else
     "$@"
   fi
@@ -156,8 +170,13 @@ main() {
   log_info "done: ${target}"
 }
 
-# Only run main when executed, not when sourced (so functions are unit-testable).
+# Runtime variables, strict mode, and traps are direct-execution-only
+# initialization. Long options are parsed manually in main so sourcing only
+# defines reusable functions.
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  set -Eeuo pipefail
+  initialize_runtime
+  install_traps
   main "$@"
 fi
 TEMPLATE
