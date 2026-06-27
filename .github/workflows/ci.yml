@@ -19,17 +19,5 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate plugin structure
-        run: bash .ci/validate-structure.sh
-
-      - name: Validate marketplace consistency
-        run: bash .ci/validate-marketplace-sync.sh
-
-      - name: Validate JSON
-        run: bash .ci/validate-json.sh
-
-      - name: Validate Markdown internal links
-        run: bash .ci/validate-markdown-internal-links.sh
-
-      - name: Validate shell script syntax
-        run: bash .ci/validate-shell-syntax.sh
+      - name: Validate repository
+        run: scripts/validate.sh --all
