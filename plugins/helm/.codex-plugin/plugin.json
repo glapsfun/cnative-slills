@@ -1,0 +1,53 @@
+{
+  "name": "helm",
+  "version": "1.0.0",
+  "description": "Expert guide for Helm — authoring charts, Go/Sprig templating, the helm CLI, release lifecycle (install/upgrade/rollback), discovering existing charts and repositories, and debugging chart and release failures with lint, template, dry-run, and manifest inspection.",
+  "author": {
+    "name": "vladtara",
+    "email": "vlad@glaps.fun",
+    "url": "https://github.com/glapsfun"
+  },
+  "homepage": "https://github.com/glapsfun/cnative-skills",
+  "repository": "https://github.com/glapsfun/cnative-skills",
+  "license": "MIT",
+  "keywords": [
+    "helm",
+    "helm-chart",
+    "kubernetes",
+    "k8s",
+    "templating",
+    "go-template",
+    "sprig",
+    "values",
+    "chart",
+    "release",
+    "helmfile",
+    "oci",
+    "artifacthub",
+    "cloud-native",
+    "cncf"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Helm",
+    "shortDescription": "Helm chart authoring, templating, CLI, and debugging",
+    "longDescription": "Author and template Helm charts, drive the helm CLI and release lifecycle, discover existing charts and repositories, and debug chart and release failures with lint, template, dry-run rendering, and manifest inspection.",
+    "developerName": "vladtara",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/glapsfun/cnative-skills",
+    "privacyPolicyURL": "https://github.com/glapsfun/cnative-skills",
+    "termsOfServiceURL": "https://github.com/glapsfun/cnative-skills",
+    "defaultPrompt": [
+      "Use Helm to create a production-ready chart for this app.",
+      "Use Helm to debug why this chart fails to render or this release is broken.",
+      "Use Helm to review and harden this chart's templates and values."
+    ],
+    "brandColor": "#0F1689",
+    "screenshots": []
+  }
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Helm"
+  short_description: "Author, template, operate, and debug Helm charts"
+  default_prompt: "Use $helm to create and template charts, drive the helm CLI and release lifecycle, discover existing charts, and debug chart-rendering or release failures."

@@ -1,0 +1,35 @@
+{
+  "skill_name": "helm",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I'm getting this when I run helm template on my chart: `Error: template: mychart/templates/deployment.yaml:18:25: executing \"mychart/templates/deployment.yaml\" at <.Values.resources>: nil pointer evaluating interface {}.limits`. The deployment has `resources:\\n  {{ toYaml .Values.resources.limits }}` and resources isn't always set. How do I fix it?",
+      "expected_output": "Explain the nil-pointer is because .Values.resources is unset so .limits can't be evaluated. Fix with a guard: `{{- with .Values.resources }}resources:\\n  {{- toYaml . | nindent 2 }}{{- end }}`, or default/hasKey. Note toYaml should use nindent for correct indentation, and recommend rendering with helm template to verify. May mention adding it to values.yaml/schema.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Create a production-ready Helm chart for a stateless REST API called 'orders-api'. It needs a Deployment, Service, configurable image/replicas/resources, liveness/readiness probes, and should follow Helm best practices.",
+      "expected_output": "Recommend `helm create` as the starting point, then a chart with apiVersion v2, namespaced _helpers.tpl labels/selectorLabels, Deployment using include+nindent for labels and toYaml+nindent for resources/probes, configurable image (tag defaulting to appVersion not latest), replicaCount, resources requests/limits, readiness/liveness probes, a Service, securityContext, and a values.yaml + ideally values.schema.json. Mention helm lint --strict / helm template to validate.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "My `helm upgrade` failed halfway and now `helm list` shows the release as 'pending-upgrade'. Every new `helm upgrade` says another operation is in progress. How do I recover without deleting everything?",
+      "expected_output": "Explain pending-upgrade means a prior operation was interrupted and never reached a terminal state. Recommend `helm history` to find the last good revision, then `helm rollback <release> <rev>` to clear it. Suggest using --atomic on future upgrades. As a last resort mention the release-state Secret (sh.helm.release.v1.*) can be removed but that's destructive metadata surgery — back up first, prefer rollback.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "I need to deploy PostgreSQL to my cluster. I don't want to write a chart from scratch. How do I find a good existing Helm chart, see what I can configure, and install it pinned to a specific version?",
+      "expected_output": "Show `helm search hub postgresql` (Artifact Hub) or a known repo; `helm repo add` + `helm repo update`; `helm show values <repo>/postgresql --version X` to see configuration (pipe to a values file); then `helm install <name> <repo>/postgresql --version X -f my-values.yaml`. Mention OCI alternative (oci:// path, no repo add) and checking maintenance/kubeVersion. Pin the version.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Review this Helm template snippet for problems:\n\n```\nmetadata:\n  labels:\n    {{ template \"mychart.labels\" . }}\n  name: {{ .Values.name }}\nspec:\n  replicas: {{ .Values.replicas }}\n  image: myapp:{{ .Values.tag }}\n```",
+      "expected_output": "Identify: `template` can't be piped so labels indentation will be wrong — use `{{- include \"mychart.labels\" . | nindent 4 }}`; the tag is unquoted (YAML coercion risk) — quote it; image:tag built by string concat should use quote and ideally default the tag to appVersion not arbitrary; name/replicas should be nil-safe / come from helpers; recommend rendering with helm template and running helm lint --strict. May note label namespacing and that template names are global.",
+      "files": []
+    }
+  ]
+}

@@ -47,6 +47,13 @@
       "description": "Expert guide for writing, hardening, debugging, and reviewing Bash and POSIX shell scripts — strict mode, defensive patterns, safe quoting/expansion, arrays, trap-based cleanup, getopts parsing, ShellCheck/shfmt linting, Bats testing, and Linux/macOS portability",
       "category": "developer-tools",
       "tags": ["bash", "shell", "sh", "posix", "scripting", "shellcheck", "shfmt", "bats"]
+    },
+    {
+      "name": "helm",
+      "source": "./plugins/helm",
+      "description": "Expert guide for Helm — authoring charts, Go/Sprig templating, the helm CLI and release lifecycle (install/upgrade/rollback), discovering existing charts and repositories, and debugging chart-rendering and release failures with lint, template, dry-run, and manifest inspection",
+      "category": "cloud-native",
+      "tags": ["helm", "helm-chart", "kubernetes", "k8s", "templating", "go-template", "sprig", "release"]
     }
   ]
 }
