@@ -95,10 +95,25 @@ log_warn()  { log "WARN"  "$@"; }
 log_error() { log "ERROR" "$@"; }
 die()       { log_error "$@"; exit 1; }
 
+cleanup_resources() {
+  local failed=0
+
+  # Check every action explicitly: errexit is disabled while this function runs under `if !`.
+  # if ! rm -rf -- "${work_dir}"; then
+  #   failed=1
+  # fi
+
+  return "${failed}"
+}
+
 cleanup() {
   local rc=$?
-  # Remove temp files, kill background jobs, etc. Runs on every exit path.
   trap - EXIT
+
+  if ! cleanup_resources; then
+    log_warn "cleanup failed" || :
+  fi
+
   exit "${rc}"
 }
 

@@ -41,7 +41,15 @@ If the shebang is `#!/bin/sh`, avoid all of these:
 | `echo -e` / `-n` (unreliable even in bash) | `printf` |
 | `printf '%q'` | No portable shell-escaping formatter; print a fixed label and each argument as data |
 
-POSIX.1-2024 Issue 8 standardizes `set -o pipefail`, but many deployed `/bin/sh` implementations predate or omit it, including dash versions. Verify the actual target shell before enabling it; a safe capability probe runs `(set -o pipefail) 2>/dev/null` in a subshell. When unavailable, restructure the pipeline so each stage's status is checked instead of assuming `pipefail`.
+POSIX.1-2024 Issue 8 standardizes `set -o pipefail`, but many deployed `/bin/sh` implementations predate or omit it, including dash versions. Probe in an `if` condition so an unsupported option does not trigger `set -e`:
+
+```sh
+if (set -o pipefail) 2>/dev/null; then
+  set -o pipefail
+fi
+```
+
+An unsupported shell continues without `pipefail`; restructure pipelines so each stage's status is checked, or exit explicitly when `pipefail` is required.
 
 A safe POSIX header:
 

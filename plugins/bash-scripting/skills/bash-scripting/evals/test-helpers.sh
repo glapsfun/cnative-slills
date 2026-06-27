@@ -213,6 +213,76 @@ test_direct_execution_initializes_before_traps_and_main() {
 fi'* ]]
 }
 
+test_generated_cleanup_preserves_original_exit_status() {
+  local generated_content
+
+  generated_content=$(<"${GENERATED}")
+  # shellcheck disable=SC2016  # Generated variable references must remain literal in this source assertion.
+  [[ ${generated_content} == *'cleanup_resources() {
+  local failed=0
+
+  # Check every action explicitly: errexit is disabled while this function runs under `if !`.
+  # if ! rm -rf -- "${work_dir}"; then
+  #   failed=1
+  # fi
+
+  return "${failed}"
+}
+
+cleanup() {
+  local rc=$?
+  trap - EXIT
+
+  if ! cleanup_resources; then
+    log_warn "cleanup failed" || :
+  fi
+
+  exit "${rc}"
+}'* ]]
+}
+
+test_generated_cleanup_failure_preserves_original_exit_status() {
+  local stdout_file="${TEST_TMPDIR}/cleanup-stdout"
+  local stderr_file="${TEST_TMPDIR}/cleanup-stderr"
+  local status
+
+  bash -c '
+    source "$1"
+    set -e
+    cleanup_resources() { return 9; }
+    install_traps
+    exit 7
+  ' _ "${GENERATED}" >"${stdout_file}" 2>"${stderr_file}"
+  status=$?
+
+  [[ ${status} -eq 7 ]] || return 1
+  [[ ! -s ${stdout_file} ]] || return 1
+  grep -q 'cleanup.*failed' "${stderr_file}"
+}
+
+test_generated_cleanup_warning_failure_preserves_original_exit_status() {
+  local stdout_file="${TEST_TMPDIR}/cleanup-warning-stdout"
+  local stderr_file="${TEST_TMPDIR}/cleanup-warning-stderr"
+  local status
+
+  bash -c '
+    source "$1"
+    set -e
+    cleanup_resources() { return 9; }
+    log_warn() {
+      printf "forced cleanup warning\n" >&2
+      return 8
+    }
+    install_traps
+    exit 7
+  ' _ "${GENERATED}" >"${stdout_file}" 2>"${stderr_file}"
+  status=$?
+
+  [[ ${status} -eq 7 ]] || return 1
+  [[ ! -s ${stdout_file} ]] || return 1
+  grep -q 'forced cleanup warning' "${stderr_file}"
+}
+
 test_linter_discovers_supported_directory_scripts() {
   local output
 
@@ -509,6 +579,9 @@ run_test "dry-run shell-escapes arguments on one line" test_dry_run_shell_escape
 run_test "INT trap exits 130" test_int_trap_exits_130
 run_test "TERM trap exits 143" test_term_trap_exits_143
 run_test "direct execution initializes before traps and main" test_direct_execution_initializes_before_traps_and_main
+run_test "generated cleanup preserves the original exit status" test_generated_cleanup_preserves_original_exit_status
+run_test "generated cleanup failure preserves the original exit status" test_generated_cleanup_failure_preserves_original_exit_status
+run_test "generated cleanup warning failure preserves the original exit status" test_generated_cleanup_warning_failure_preserves_original_exit_status
 run_test "linter discovers supported directory scripts" test_linter_discovers_supported_directory_scripts
 run_test "linter uses sh for POSIX shebang" test_linter_uses_sh_for_posix_shebang
 run_test "linter warns when POSIX portability is not checked" test_linter_warns_when_posix_portability_is_not_checked

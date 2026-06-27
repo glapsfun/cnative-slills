@@ -103,10 +103,25 @@ USAGE
 }
 
 # --- cleanup: runs on every exit path, preserving the original exit code ----
+cleanup_resources() {
+  local failed=0
+
+  # Check every action explicitly: errexit is disabled while this function runs under `if !`.
+  # if ! rm -rf -- "${work_dir}"; then
+  #   failed=1
+  # fi
+
+  return "${failed}"
+}
+
 cleanup() {
   local rc=$?
-  # TODO: remove temp files / kill background jobs here.
   trap - EXIT
+
+  if ! cleanup_resources; then
+    log_warn "cleanup failed" || :
+  fi
+
   exit "${rc}"
 }
 
