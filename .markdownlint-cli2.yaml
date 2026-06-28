@@ -12,3 +12,6 @@ globs:
   - "**/*.md"
 ignores:
   - "**/node_modules/**"
+  # Internal workflow artifacts (brainstorm specs, implementation plans). These
+  # embed nested code fences that do not lint cleanly and are not shipped docs.
+  - "docs/superpowers/**"
