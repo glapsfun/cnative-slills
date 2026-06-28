@@ -140,6 +140,39 @@ Run the command from the repository root. Omit `--global` for a project-local in
 
 ---
 
+### Method 5 — Install a specific release (pinned version)
+
+Methods 1–3 always install the **latest** published content (the default branch). To pin to a specific [release](https://github.com/glapsfun/cnative-skills/releases) — each one is a git tag such as `v0.1.0` — check out that tag and install from the local clone:
+
+```bash
+git clone --branch v0.1.0 --depth 1 https://github.com/glapsfun/cnative-skills.git
+cd cnative-skills
+```
+
+Then install from that checkout. In Claude Code (use the absolute path to the clone):
+
+```
+/plugin marketplace add /path/to/cnative-skills
+/plugin install kubernetes-operator@cnative-skills
+```
+
+For Codex, run from the repo root:
+
+```bash
+npx skills add . --skill kubernetes-operator --agent codex --global -y
+```
+
+To move to a different release later, fetch the new tag and re-checkout:
+
+```bash
+git fetch --tags
+git checkout v0.2.0
+```
+
+then re-run the install/update steps below.
+
+---
+
 ### Install all plugins at once with slash commands
 
 After adding the marketplace with Method 1 or Method 4, install all plugins:
@@ -171,6 +204,53 @@ npx skills add glapsfun/cnative-skills \
 ```
 
 Restart Codex after installing or updating skills.
+
+---
+
+## Updating skills
+
+How you update depends on how you installed. In all cases, a plugin only changes on a user's machine when its `version` field (in `plugins/<name>/.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`) has been bumped in a newer release.
+
+### Claude Code (Methods 1, 2)
+
+Refresh the marketplace catalog, then the installed plugins pick up the new versions:
+
+```
+/plugin marketplace update cnative-skills
+```
+
+Non-interactively with the CLI:
+
+```bash
+claude plugin marketplace update cnative-skills
+```
+
+### Codex (Method 3)
+
+Re-run the same `npx skills add` command — it overwrites the installed skill with the latest content — then restart Codex:
+
+```bash
+npx skills add glapsfun/cnative-skills --skill kubernetes-operator --agent codex --global -y
+```
+
+Check what's installed and their versions with:
+
+```bash
+npx skills list -a codex
+```
+
+### Pinned releases (Method 5)
+
+A pinned clone stays on its tag until you move it. Fetch tags, check out the newer release, and re-run the local install:
+
+```bash
+git fetch --tags
+git checkout v0.2.0
+```
+
+Then `/plugin marketplace update cnative-skills` (Claude Code) or re-run `npx skills add . ...` from the checkout (Codex).
+
+See [docs/RELEASING.md](docs/RELEASING.md) for how releases and versions are produced.
 
 ---
 
