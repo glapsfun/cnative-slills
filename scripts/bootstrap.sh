@@ -17,6 +17,9 @@ Install developer tooling used by the scripts/ check suite:
   shellcheck shfmt yamllint actionlint prettier markdownlint-cli2
   gitleaks pre-commit (and git-cliff on macOS for local release dry-runs).
 
+Version-sensitive tools (shfmt, actionlint, gitleaks) are installed via
+`go install` at pinned versions on every platform so local output matches CI.
+
 Options:
   --ci        Non-interactive install for Linux CI runners (apt/go/npm/pip).
   -h, --help  Show this help.
@@ -25,25 +28,38 @@ With no flag, installs via Homebrew on macOS.
 EOF
 }
 
+# Install the pinned, version-sensitive Go tools. Run identically on macOS and
+# CI so shfmt/actionlint/gitleaks produce the same results everywhere.
+install_go_tools() {
+  require_tool go "Install Go (https://go.dev/dl) — required for pinned tooling"
+  go install "mvdan.cc/sh/v3/cmd/shfmt@${SHFMT_VERSION}"
+  go install "github.com/rhysd/actionlint/cmd/actionlint@${ACTIONLINT_VERSION}"
+  # The module path is still declared as zricethezav/gitleaks at this version.
+  go install "github.com/zricethezav/gitleaks/v8@${GITLEAKS_VERSION}"
+}
+
 bootstrap_macos() {
   require_tool brew "Install Homebrew from https://brew.sh"
+  # Non-pinned tools via brew; version-sensitive ones via go (pinned) below.
   brew install \
-    shellcheck shfmt yamllint actionlint \
-    prettier markdownlint-cli2 gitleaks git-cliff pre-commit
+    shellcheck yamllint \
+    prettier markdownlint-cli2 git-cliff pre-commit
+  install_go_tools
+
+  gobin="$(go env GOPATH)/bin"
+  if [[ ":$PATH:" != *":$gobin:"* ]]; then
+    log_warn "add '$gobin' to your PATH (and ahead of Homebrew) so pinned tools win"
+  fi
 }
 
 bootstrap_ci() {
-  require_tool go "Go must be available on the CI runner"
   require_tool npm "Node/npm must be available on the CI runner"
   require_tool python3 "Python 3 must be available on the CI runner"
 
   sudo apt-get update -y
   sudo apt-get install -y shellcheck
 
-  go install "mvdan.cc/sh/v3/cmd/shfmt@${SHFMT_VERSION}"
-  go install "github.com/rhysd/actionlint/cmd/actionlint@${ACTIONLINT_VERSION}"
-  # The module path is still declared as zricethezav/gitleaks at this version.
-  go install "github.com/zricethezav/gitleaks/v8@${GITLEAKS_VERSION}"
+  install_go_tools
 
   python3 -m pip install --user --quiet yamllint pre-commit
   npm install -g --no-fund --no-audit prettier markdownlint-cli2
