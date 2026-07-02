@@ -16,6 +16,7 @@ Diagnose from evidence before changing config. The evidence chain, in order:
 ## Pods Pending, no node launches
 
 `FailedScheduling: no instance type met the scheduling requirements...`:
+
 - Pod constraints ∩ NodePool requirements = ∅ — wrong label namespace
   (`karpenter.k8s.aws/*` vs `eks.amazonaws.com/*`), zone-pinned PV vs zone-restricted pool,
   arch mismatch, missing toleration for the pool's taint.
@@ -28,6 +29,7 @@ Diagnose from evidence before changing config. The evidence chain, in order:
 ## Instances launch, then disappear every ~15 minutes
 
 Registration timeout: the instance never joins, Karpenter terminates it and retries.
+
 - Node role missing from EKS access entries / aws-auth (`Unauthorized` in kubelet logs;
   aws-auth username must be `system:node:{{EC2PrivateDNSName}}`).
 - Encrypted root volume, KMS key policy missing EC2 grants (instances die immediately).
@@ -67,6 +69,7 @@ this is why every pool needs them).
 ## Nodes won't scale down
 
 Read the `Unconsolidatable`/`DisruptionBlocked` events first — they name the cause:
+
 - Blocking PDB (`maxUnavailable: 0`, duplicate selectors, unhealthy single-replica apps).
 - `karpenter.sh/do-not-disrupt` pods (forgotten `"true"` annotations; prefer durations).
 - Pods without a controller owner; un-drainable local storage expectations (emptyDir).

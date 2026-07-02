@@ -95,8 +95,8 @@ autoscalers outrun budgets faster than humans notice.
   counter with `instance-generation Gt N` or generation-weighted pools.
 - **RIs/Savings Plans**: weighted pool (`weight: 50`) sized to the commitment via `limits`,
   unweighted overflow pool behind it. **ODCRs**: native — `capacityReservationSelectorTerms`
-  + capacity-type `reserved`; Karpenter fills reservations first and consolidates onto them
-  (see ec2nodeclass.md).
+  with capacity-type `reserved`; Karpenter fills reservations first and consolidates onto
+  them (see ec2nodeclass.md).
 - **Overprovisioning / headroom**: Deployment of `pause` pods with real requests and a
   negative-value PriorityClass (`value: -1000`, `globalDefault: false`). Real pods preempt
   placeholders in seconds; evicted placeholders go Pending and pull up the next node. Size

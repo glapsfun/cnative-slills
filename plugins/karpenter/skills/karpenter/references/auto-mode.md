@@ -94,8 +94,8 @@ Auto Mode nodes also carry `eks.amazonaws.com/compute-type: auto` — the select
 requiring (or excluding, via `NotIn`) Auto Mode nodes in mixed clusters.
 
 Instance universe: broad C/M/R/T/I/X/Z (now through the c8/m8/r8 generations, plus hpc8a)
-+ accelerated (p3→p6-b300, g4→g7e, inf1/2, trn1/2) — but only types with >1 vCPU and size
-above `small`.
+and accelerated (p3→p6-b300, g4→g7e, inf1/2, trn1/2) — but only types with >1 vCPU and
+size above `small`.
 
 ## GPU / accelerated pools
 

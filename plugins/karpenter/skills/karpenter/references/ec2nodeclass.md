@@ -68,6 +68,7 @@ scheduling (great for high-IO; data is per-node ephemeral).
 
 **`userData`** merge semantics by family — users often assume their userData replaces
 Karpenter's; it doesn't:
+
 - AL2/Windows: your MIME part runs first, Karpenter appends its bootstrap last.
 - AL2023: you may provide shell/NodeConfig/MIME; Karpenter appends its NodeConfig and **its
   values win** (cluster info, labels, taints, kubelet settings).
